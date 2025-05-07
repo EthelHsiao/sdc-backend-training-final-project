@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, Query, status
 from sqlmodel import select, Session as DBSession
 from app.models.session import Session
 from app.core.database import get_session
@@ -13,8 +13,12 @@ def create_session(session: Session, db: DBSession = Depends(get_session)):
     return session
 
 @router.get("/", response_model=list[Session])
-def read_sessions(db: DBSession = Depends(get_session)):
-    return db.exec(select(Session)).all()
+def read_sessions(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: DBSession = Depends(get_session)
+):
+    return db.exec(select(Session).offset(offset).limit(limit)).all()
 
 @router.get("/{session_id}", response_model=Session)
 def get_session_by_id(session_id: int, db: DBSession = Depends(get_session)):

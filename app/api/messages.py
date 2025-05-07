@@ -8,6 +8,11 @@ router = APIRouter(prefix="/messages", tags=["messages"])
 
 @router.post("/", response_model=Message)
 def create_message(message: Message, db: DBSession = Depends(get_session)):
+    # 驗證session_id是否存在
+    session = db.get(Session, message.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
     db.add(message)
     db.commit()
     db.refresh(message)
